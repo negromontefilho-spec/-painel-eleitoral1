@@ -1,0 +1,670 @@
+<html lang="pt-BR"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Painel Eleitoral — Negromonte</title>
+<style>
+  :root {
+    --azul:#1B2E4B;--azul-med:#2C4A72;--verde:#1A7A4A;--verde-cl:#E8F5EE;
+    --laranja:#D4500A;--roxo:#6B3FA0;--roxo-cl:#F0EAF9;--cinza-f:#F4F6F9;
+    --cinza-b:#E2E8F0;--texto:#1A2332;--sub:#5A6A7E;--branco:#FFFFFF;
+    --radius:12px;--shadow:0 2px 12px rgba(0,0,0,0.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;background:var(--cinza-f);color:var(--texto);min-height:100vh;padding-bottom:80px}
+  header{background:var(--azul);color:var(--branco);padding:16px 20px 12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+  header .titulo{font-size:17px;font-weight:700;letter-spacing:-0.3px}
+  header .subtitulo{font-size:12px;color:#A8BDD0;margin-top:2px}
+  nav{position:fixed;bottom:0;left:0;right:0;background:var(--branco);border-top:1px solid var(--cinza-b);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+  nav button{flex:1;background:none;border:none;padding:10px 2px 8px;font-size:9px;color:var(--sub);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:color .15s}
+  nav button.ativo{color:var(--azul)}
+  nav button svg{width:20px;height:20px}
+  .tela{display:none;padding:16px}.tela.ativa{display:block}
+  .card{background:var(--branco);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:12px}
+  .resumo-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+  .resumo-item{background:var(--branco);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;text-align:center}
+  .resumo-item .num{font-size:26px;font-weight:800;color:var(--azul);line-height:1}
+  .resumo-item .num.verde{color:var(--verde)}.resumo-item .num.laranja{color:var(--laranja)}.resumo-item .num.roxo{color:var(--roxo)}
+  .resumo-item .label{font-size:10px;color:var(--sub);margin-top:4px}
+  .votos-total-banner{background:linear-gradient(135deg,var(--azul),var(--azul-med));border-radius:var(--radius);padding:18px;text-align:center;margin-bottom:16px;box-shadow:var(--shadow)}
+  .votos-total-banner .num{font-size:42px;font-weight:900;color:white;line-height:1}
+  .votos-total-banner .label{font-size:13px;color:#A8BDD0;margin-top:6px}
+  .secao-titulo{font-size:13px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:0.5px;margin:20px 0 10px}
+  .lider-card{background:var(--branco);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:transform .1s;position:relative}
+  .lider-card:active{transform:scale(0.98)}
+  .avatar{width:44px;height:44px;border-radius:50%;background:var(--azul-med);color:var(--branco);font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .lider-info{flex:1;min-width:0}.lider-nome{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lider-meta{font-size:12px;color:var(--sub);margin-top:2px}
+  .lider-votos{font-size:18px;font-weight:800;color:var(--verde);text-align:right;flex-shrink:0}
+  .lider-votos span{font-size:10px;font-weight:400;color:var(--sub);display:block}
+  .badge-pedido{position:absolute;top:10px;right:12px;background:var(--laranja);color:white;font-size:10px;font-weight:700;border-radius:10px;padding:2px 7px}
+  .form-grupo{margin-bottom:14px}
+  .form-grupo label{display:block;font-size:12px;font-weight:600;color:var(--sub);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.3px}
+  .form-grupo input,.form-grupo select,.form-grupo textarea{width:100%;padding:12px 14px;border:1.5px solid var(--cinza-b);border-radius:10px;font-size:15px;color:var(--texto);background:var(--branco);appearance:none;-webkit-appearance:none;outline:none;transition:border-color .15s;font-family:inherit}
+  .form-grupo input:focus,.form-grupo select:focus,.form-grupo textarea:focus{border-color:var(--azul-med)}
+  .form-grupo textarea{resize:vertical;min-height:80px}
+  .btn-primary{width:100%;padding:14px;background:var(--azul);color:var(--branco);border:none;border-radius:var(--radius);font-size:16px;font-weight:700;cursor:pointer;margin-top:4px;transition:background .15s;font-family:inherit}
+  .btn-primary:active{background:var(--azul-med)}
+  .btn-secundario{width:100%;padding:12px;background:var(--cinza-f);color:var(--azul);border:1.5px solid var(--cinza-b);border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer;margin-top:8px;font-family:inherit}
+  .btn-perigo{width:100%;padding:12px;background:#FFF0EE;color:#C0392B;border:1.5px solid #F5C6C2;border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer;margin-top:8px;font-family:inherit}
+  .btn-imprimir{width:100%;padding:12px;background:#EEF2FF;color:#3730A3;border:1.5px solid #C7D2FE;border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer;margin-top:8px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px}
+  .detalhe-header{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+  .avatar-grande{width:60px;height:60px;border-radius:50%;background:var(--azul);color:var(--branco);font-size:22px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .detalhe-nome{font-size:20px;font-weight:800}.detalhe-sub{font-size:13px;color:var(--sub);margin-top:2px}
+  .info-linha{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--cinza-f);font-size:14px}
+  .info-linha:last-child{border-bottom:none}
+  .info-linha .chave{color:var(--sub);font-size:13px}
+  .info-linha .valor{font-weight:600;text-align:right;max-width:60%}
+  .votos-destaque{background:var(--verde-cl);border-radius:var(--radius);padding:16px;text-align:center;margin-bottom:12px}
+  .votos-destaque .num{font-size:42px;font-weight:900;color:var(--verde);line-height:1}
+  .votos-destaque .label{font-size:13px;color:var(--verde);margin-top:4px}
+  .pedido-item{background:var(--branco);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:10px}
+  .pedido-cabecalho{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+  .pedido-lider{font-size:14px;font-weight:700}.pedido-data{font-size:11px;color:var(--sub)}
+  .pedido-texto{font-size:14px;color:var(--texto);line-height:1.4}
+  .pedido-status{display:inline-block;margin-top:8px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+  .status-pendente{background:#FFF3CD;color:#856404}.status-resolvido{background:var(--verde-cl);color:var(--verde)}
+  .ajuda-item{background:var(--branco);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:10px}
+  .ajuda-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+  .ajuda-lider{font-size:14px;font-weight:700}.ajuda-data{font-size:11px;color:var(--sub)}
+  .ajuda-descricao{font-size:14px;color:var(--texto);line-height:1.4;margin-bottom:6px}
+  .ajuda-tipo-dinheiro{display:inline-flex;align-items:center;gap:4px;background:var(--verde-cl);color:var(--verde);font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px}
+  .ajuda-tipo-outro{display:inline-flex;align-items:center;gap:4px;background:var(--roxo-cl);color:var(--roxo);font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px}
+  .ajuda-valor{font-size:16px;font-weight:800;color:var(--verde);margin-top:6px}
+  .total-dinheiro-banner{background:linear-gradient(135deg,var(--verde),#156B3E);border-radius:var(--radius);padding:16px;text-align:center;margin-bottom:16px;box-shadow:var(--shadow)}
+  .total-dinheiro-banner .num{font-size:32px;font-weight:900;color:white;line-height:1}
+  .total-dinheiro-banner .label{font-size:12px;color:#A8EECA;margin-top:4px}
+  .busca-wrap{position:relative;margin-bottom:14px}
+  .busca-wrap input{width:100%;padding:11px 14px 11px 38px;border:1.5px solid var(--cinza-b);border-radius:10px;font-size:15px;background:var(--branco);outline:none;font-family:inherit}
+  .busca-wrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--sub)}
+  .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:#1A2332;color:white;padding:12px 20px;border-radius:20px;font-size:14px;font-weight:500;opacity:0;transition:all .3s;z-index:999;white-space:nowrap;pointer-events:none}
+  .toast.visivel{opacity:1;transform:translateX(-50%) translateY(0)}
+  .btn-voltar{display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--azul);font-size:15px;font-weight:600;cursor:pointer;padding:0;margin-bottom:16px;font-family:inherit}
+  .vazio{text-align:center;padding:40px 20px;color:var(--sub);font-size:14px}
+  .tag-bairro{display:inline-block;background:var(--cinza-f);color:var(--sub);font-size:11px;font-weight:600;border-radius:6px;padding:2px 8px;margin-top:3px}
+  .btn-acao-flutuante{position:fixed;bottom:90px;right:20px;width:52px;height:52px;background:var(--azul);color:white;border:none;border-radius:50%;font-size:26px;cursor:pointer;box-shadow:0 4px 16px rgba(27,46,75,0.4);display:flex;align-items:center;justify-content:center;z-index:50;transition:transform .1s}
+  .btn-acao-flutuante:active{transform:scale(0.93)}
+  .tipo-selector{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+  .tipo-btn{padding:12px;border:2px solid var(--cinza-b);border-radius:10px;background:var(--branco);font-size:14px;font-weight:600;cursor:pointer;text-align:center;color:var(--sub);font-family:inherit;transition:all .15s}
+  .tipo-btn.selecionado-dinheiro{border-color:var(--verde);background:var(--verde-cl);color:var(--verde)}
+  .tipo-btn.selecionado-outro{border-color:var(--roxo);background:var(--roxo-cl);color:var(--roxo)}
+  .campo-valor{display:none}.campo-valor.visivel{display:block}
+
+  /* IMPRESSÃO */
+  @media print {
+    body{background:white;padding:0}
+    nav,header,.btn-acao-flutuante,.btn-voltar,.btn-primary,.btn-secundario,.btn-perigo,.btn-imprimir{display:none!important}
+    .tela{display:none!important;padding:0}
+    #area-impressao{display:block!important}
+    .print-page{page-break-after:always;padding:20px}
+    .print-cabecalho{text-align:center;border-bottom:2px solid #1B2E4B;padding-bottom:12px;margin-bottom:16px}
+    .print-titulo{font-size:18px;font-weight:800;color:#1B2E4B}
+    .print-sub{font-size:12px;color:#5A6A7E;margin-top:4px}
+    .print-data{font-size:11px;color:#5A6A7E}
+    .print-secao{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#5A6A7E;margin:14px 0 6px;border-bottom:1px solid #E2E8F0;padding-bottom:4px}
+    .print-linha{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #F4F6F9;font-size:13px}
+    .print-linha .chave{color:#5A6A7E}.print-linha .valor{font-weight:600}
+    .print-votos-big{font-size:32px;font-weight:900;color:#1A7A4A;text-align:center;margin:10px 0}
+    .print-total-banner{background:#1B2E4B;color:white;padding:14px;text-align:center;border-radius:8px;margin-bottom:16px}
+    .print-total-banner .num{font-size:36px;font-weight:900}
+    .print-total-banner .label{font-size:11px;opacity:0.7;margin-top:4px}
+    .print-tabela{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px}
+    .print-tabela th{background:#1B2E4B;color:white;padding:8px;text-align:left;font-size:11px}
+    .print-tabela td{padding:7px 8px;border-bottom:1px solid #E2E8F0}
+    .print-tabela tr:nth-child(even) td{background:#F4F6F9}
+    .print-rodape{text-align:center;font-size:10px;color:#5A6A7E;margin-top:20px;border-top:1px solid #E2E8F0;padding-top:8px}
+  }
+  #area-impressao{display:none}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="titulo">📊 Painel Eleitoral</div>
+  <div class="subtitulo">Negromonte Filho — Nazaré da Mata</div>
+</header>
+
+<!-- DASHBOARD -->
+<div class="tela ativa" id="tela-dashboard">
+  <div class="votos-total-banner">
+    <div class="num" id="dash-total-votos">41</div>
+    <div class="label">votos estimados no total</div>
+  </div>
+  <div class="resumo-grid">
+    <div class="resumo-item"><div class="num" id="total-liderancas">4</div><div class="label">Lideranças</div></div>
+    <div class="resumo-item"><div class="num laranja" id="total-pedidos">0</div><div class="label">Pedidos abertos</div></div>
+    <div class="resumo-item"><div class="num" id="total-bairros">4</div><div class="label">Bairros</div></div>
+    <div class="resumo-item"><div class="num roxo" id="total-ajudas-dash">1</div><div class="label">Ajudas</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">
+    <button class="btn-imprimir" onclick="imprimirRelatorioGeral()">🖨️ Imprimir</button>
+    <button class="btn-imprimir" style="background:#E8F5EE;color:#1A7A4A;border-color:#A8D5BB" onclick="exportarBackup()">💾 Salvar backup</button>
+  </div>
+  <div class="secao-titulo">Top lideranças por votos</div>
+  <div id="dash-top-lista">
+    <div class="lider-card" onclick="abrirDetalhe('mqb0nqzt4pm4vq56n13')">
+      <div class="avatar">JD</div>
+      <div class="lider-info"><div class="lider-nome">João da òtica e a Esposa</div><div class="lider-meta"><span class="tag-bairro">Centro</span></div></div>
+      <div class="lider-votos">20<span>votos</span></div>
+    </div>
+    <div class="lider-card" onclick="abrirDetalhe('mqb0c97k72n7ji6atru')">
+      <div class="avatar">RB</div>
+      <div class="lider-info"><div class="lider-nome">Rafaela Beira Rio</div><div class="lider-meta"><span class="tag-bairro">Beira Rio</span></div></div>
+      <div class="lider-votos">8<span>votos</span></div>
+    </div>
+    <div class="lider-card" onclick="abrirDetalhe('mqb0od6d8z04esb56w9')">
+      <div class="avatar">L</div>
+      <div class="lider-info"><div class="lider-nome">Lindenbergh</div><div class="lider-meta"><span class="tag-bairro">Vila</span></div></div>
+      <div class="lider-votos">8<span>votos</span></div>
+    </div>
+    <div class="lider-card" onclick="abrirDetalhe('mqb094qmpgkqsly289')">
+      <div class="avatar">F</div>
+      <div class="lider-info"><div class="lider-nome">Fernanda</div><div class="lider-meta"><span class="tag-bairro">Vila madalena</span></div></div>
+      <div class="lider-votos">5<span>votos</span></div>
+    </div></div>
+  <div class="secao-titulo">Pedidos recentes</div>
+  <div id="dash-pedidos-lista"><div class="pedido-item"><div class="pedido-cabecalho"><div class="pedido-lider">Fernanda</div><div class="pedido-data">12/06/26</div></div><div class="pedido-texto">ajuda para ir ao recife</div><span class="pedido-status status-resolvido">Resolvido</span></div></div>
+</div>
+
+<!-- LIDERANÇAS -->
+<div class="tela" id="tela-liderancas">
+  <div class="busca-wrap">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+    <input type="text" placeholder="Buscar por nome ou bairro…" id="busca-lider" oninput="filtrarLideres()">
+  </div>
+  <div id="lista-liderancas"></div>
+</div>
+
+<!-- DETALHE -->
+<div class="tela" id="tela-detalhe">
+  <button class="btn-voltar" onclick="voltarLista()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    Lideranças
+  </button>
+  <div id="detalhe-conteudo"></div>
+</div>
+
+<!-- FORM LIDERANÇA -->
+<div class="tela" id="tela-form">
+  <button class="btn-voltar" onclick="voltarDeForm()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    <span id="form-voltar-label">Lideranças</span>
+  </button>
+  <div class="card">
+    <h2 style="font-size:18px;font-weight:800;margin-bottom:18px" id="form-titulo">Nova Liderança</h2>
+    <div class="form-grupo"><label>Nome completo</label><input type="text" id="f-nome" placeholder="Nome da liderança"></div>
+    <div class="form-grupo"><label>Bairro / Localidade</label><input type="text" id="f-bairro" placeholder="Ex: Centro, Tamataúpe…"></div>
+    <div class="form-grupo"><label>Telefone / WhatsApp</label><input type="tel" id="f-telefone" placeholder="(81) 9 0000-0000"></div>
+    <div class="form-grupo"><label>Votos estimados</label><input type="number" id="f-votos" placeholder="0" min="0"></div>
+    <div class="form-grupo"><label>Observação</label><textarea id="f-obs" placeholder="Notas sobre essa liderança…"></textarea></div>
+    <button class="btn-primary" onclick="salvarLider()">Salvar liderança</button>
+    <button class="btn-secundario" onclick="voltarDeForm()">Cancelar</button>
+    <button class="btn-perigo" id="btn-excluir" onclick="excluirLider()" style="display:none">Excluir liderança</button>
+  </div>
+</div>
+
+<!-- PEDIDOS -->
+<div class="tela" id="tela-pedidos"><div id="lista-pedidos"></div></div>
+
+<!-- FORM PEDIDO -->
+<div class="tela" id="tela-form-pedido">
+  <button class="btn-voltar" onclick="irTela('tela-pedidos');irNav('nav-pedidos')">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    Pedidos
+  </button>
+  <div class="card">
+    <h2 style="font-size:18px;font-weight:800;margin-bottom:18px">Novo Pedido</h2>
+    <div class="form-grupo"><label>Liderança</label><select id="fp-lider"><option value="">Selecione…</option></select></div>
+    <div class="form-grupo"><label>Pedido</label><textarea id="fp-texto" placeholder="Descreva o pedido…"></textarea></div>
+    <button class="btn-primary" onclick="salvarPedido()">Registrar pedido</button>
+    <button class="btn-secundario" onclick="irTela('tela-pedidos');irNav('nav-pedidos')">Cancelar</button>
+  </div>
+</div>
+
+<!-- AJUDAS -->
+<div class="tela" id="tela-ajudas"><div id="ajudas-resumo"></div><div id="lista-ajudas"></div></div>
+
+<!-- FORM AJUDA -->
+<div class="tela" id="tela-form-ajuda">
+  <button class="btn-voltar" onclick="voltarDeAjuda()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    <span id="ajuda-voltar-label">Ajudas</span>
+  </button>
+  <div class="card">
+    <h2 style="font-size:18px;font-weight:800;margin-bottom:18px">Registrar Ajuda</h2>
+    <div class="form-grupo"><label>Liderança</label><select id="fa-lider"><option value="">Selecione…</option></select></div>
+    <div class="form-grupo">
+      <label>Tipo de ajuda</label>
+      <div class="tipo-selector">
+        <button class="tipo-btn" id="btn-tipo-dinheiro" onclick="selecionarTipo('dinheiro')">💵 Dinheiro</button>
+        <button class="tipo-btn" id="btn-tipo-outro" onclick="selecionarTipo('outro')">🤝 Outro</button>
+      </div>
+    </div>
+    <div class="form-grupo campo-valor" id="campo-valor">
+      <label>Valor (R$)</label><input type="number" id="fa-valor" placeholder="0,00" min="0" step="0.01">
+    </div>
+    <div class="form-grupo"><label>Descrição</label><textarea id="fa-descricao" placeholder="Descreva a ajuda prestada…"></textarea></div>
+    <div class="form-grupo"><label>Data</label><input type="date" id="fa-data"></div>
+    <button class="btn-primary" onclick="salvarAjuda()">Registrar ajuda</button>
+    <button class="btn-secundario" onclick="voltarDeAjuda()">Cancelar</button>
+  </div>
+</div>
+
+<!-- ÁREA DE IMPRESSÃO (oculta em tela, visível apenas ao imprimir) -->
+<div id="area-impressao"></div>
+
+<button class="btn-acao-flutuante" id="btn-flutuante" onclick="acaoFlutuante()">+</button>
+<div class="toast" id="toast"></div>
+
+<nav>
+  <button id="nav-dashboard" class="ativo" onclick="irTela('tela-dashboard');irNav('nav-dashboard')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg>
+    Painel
+  </button>
+  <button id="nav-liderancas" onclick="irTela('tela-liderancas');irNav('nav-liderancas');renderLideres()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+    Lideranças
+  </button>
+  <button id="nav-pedidos" onclick="irTela('tela-pedidos');irNav('nav-pedidos');renderPedidos()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+    Pedidos
+  </button>
+  <button id="nav-ajudas" onclick="irTela('tela-ajudas');irNav('nav-ajudas');renderAjudas()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+    Ajudas
+  </button>
+</nav>
+
+<script>
+let liderancas=JSON.parse(localStorage.getItem('liderancas')||'[{"id":"mqb094qmpgkqsly289","nome":"Fernanda","bairro":"Vila madalena","telefone":"","votos":5,"obs":"Funcionária da Prefeitura"},{"id":"mqb0c97k72n7ji6atru","nome":"Rafaela Beira Rio","bairro":"Beira Rio","telefone":"","votos":8,"obs":""},{"id":"mqb0nqzt4pm4vq56n13","nome":"João da òtica e a Esposa","bairro":"Centro","telefone":"","votos":20,"obs":""},{"id":"mqb0od6d8z04esb56w9","nome":"Lindenbergh","bairro":"Vila","telefone":"","votos":8,"obs":""}]');
+let pedidos=JSON.parse(localStorage.getItem('pedidos')||'[{"id":"mqb09u3usd5b3ur9gw","liderId":"mqb094qmpgkqsly289","texto":"ajuda para ir ao recife","status":"resolvido","data":1781273537706}]');
+let ajudas=JSON.parse(localStorage.getItem('ajudas')||'[{"id":"mqb0aygu4sjnfblfmk8","liderId":"mqb094qmpgkqsly289","tipo":"dinheiro","valor":20,"descricao":"Ajuda para ir ao recife","data":1781222400000,"dataStr":"12/06/2026"}]');
+let telaAtual='tela-dashboard',editandoId=null,voltarPara='tela-liderancas';
+let tipoAjudaSelecionado='',ajudaVoltarPara='tela-ajudas',ajudaLiderPresel=null;
+
+function salvar(){localStorage.setItem('liderancas',JSON.stringify(liderancas));localStorage.setItem('pedidos',JSON.stringify(pedidos));localStorage.setItem('ajudas',JSON.stringify(ajudas))}
+function id(){return Date.now().toString(36)+Math.random().toString(36).slice(2)}
+function fmtData(ts){return new Date(ts).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'})}
+function fmtMoeda(v){return 'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}
+function iniciais(n){if(!n)return '?';return n.trim().split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}
+function agora(){return new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}
+
+function irTela(t){document.querySelectorAll('.tela').forEach(e=>e.classList.remove('ativa'));document.getElementById(t).classList.add('ativa');telaAtual=t;atualizarFlutuante();if(t==='tela-dashboard')renderDashboard()}
+function irNav(n){document.querySelectorAll('nav button').forEach(b=>b.classList.remove('ativo'));const el=document.getElementById(n);if(el)el.classList.add('ativo')}
+function atualizarFlutuante(){const btn=document.getElementById('btn-flutuante');const ocultar=['tela-form','tela-form-pedido','tela-detalhe','tela-form-ajuda'];btn.style.display=ocultar.includes(telaAtual)?'none':'flex'}
+function acaoFlutuante(){if(telaAtual==='tela-liderancas')abrirFormNovo();else if(telaAtual==='tela-pedidos')abrirFormPedido();else if(telaAtual==='tela-ajudas')abrirFormAjuda();else{irTela('tela-liderancas');irNav('nav-liderancas');renderLideres()}}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('visivel');setTimeout(()=>t.classList.remove('visivel'),2200)}
+
+// DASHBOARD
+function renderDashboard(){
+  const abertos=pedidos.filter(p=>p.status==='pendente').length;
+  const totalVotos=liderancas.reduce((s,l)=>s+(parseInt(l.votos)||0),0);
+  const bairros=new Set(liderancas.map(l=>l.bairro).filter(Boolean)).size;
+  document.getElementById('dash-total-votos').textContent=totalVotos.toLocaleString('pt-BR');
+  document.getElementById('total-liderancas').textContent=liderancas.length;
+  document.getElementById('total-pedidos').textContent=abertos;
+  document.getElementById('total-bairros').textContent=bairros;
+  document.getElementById('total-ajudas-dash').textContent=ajudas.length;
+  const top=[...liderancas].sort((a,b)=>(parseInt(b.votos)||0)-(parseInt(a.votos)||0)).slice(0,5);
+  document.getElementById('dash-top-lista').innerHTML=top.length?top.map(l=>`
+    <div class="lider-card" onclick="abrirDetalhe('${l.id}')">
+      <div class="avatar">${iniciais(l.nome)}</div>
+      <div class="lider-info"><div class="lider-nome">${l.nome}</div><div class="lider-meta"><span class="tag-bairro">${l.bairro||'—'}</span></div></div>
+      <div class="lider-votos">${l.votos||0}<span>votos</span></div>
+    </div>`).join(''):'<div class="vazio">Nenhuma liderança cadastrada</div>';
+  const recentes=[...pedidos].sort((a,b)=>b.data-a.data).slice(0,3);
+  document.getElementById('dash-pedidos-lista').innerHTML=recentes.length?recentes.map(p=>{
+    const l=liderancas.find(x=>x.id===p.liderId);
+    return`<div class="pedido-item"><div class="pedido-cabecalho"><div class="pedido-lider">${l?l.nome:'—'}</div><div class="pedido-data">${fmtData(p.data)}</div></div><div class="pedido-texto">${p.texto}</div><span class="pedido-status ${p.status==='pendente'?'status-pendente':'status-resolvido'}">${p.status==='pendente'?'Pendente':'Resolvido'}</span></div>`;
+  }).join(''):'<div class="vazio">Nenhum pedido registrado</div>';
+}
+
+// LIDERANÇAS
+function renderLideres(filtro=''){
+  const lista=filtro?liderancas.filter(l=>l.nome.toLowerCase().includes(filtro.toLowerCase())||(l.bairro||'').toLowerCase().includes(filtro.toLowerCase())):liderancas;
+  const el=document.getElementById('lista-liderancas');
+  if(!lista.length){el.innerHTML=`<div class="vazio"><div>${filtro?'Nenhum resultado':'Nenhuma liderança cadastrada'}</div>${!filtro?'<div style="margin-top:8px;font-size:12px">Toque em + para adicionar</div>':''}</div>`;return}
+  el.innerHTML=[...lista].sort((a,b)=>(parseInt(b.votos)||0)-(parseInt(a.votos)||0)).map(l=>{
+    const nP=pedidos.filter(p=>p.liderId===l.id&&p.status==='pendente').length;
+    return`<div class="lider-card" onclick="abrirDetalhe('${l.id}')"><div class="avatar">${iniciais(l.nome)}</div><div class="lider-info"><div class="lider-nome">${l.nome}</div><div class="lider-meta">📍 ${l.bairro||'—'} &nbsp;·&nbsp; 📞 ${l.telefone||'—'}</div></div><div class="lider-votos">${l.votos||0}<span>votos</span></div>${nP?`<span class="badge-pedido">${nP}</span>`:''}</div>`;
+  }).join('');
+}
+function filtrarLideres(){renderLideres(document.getElementById('busca-lider').value)}
+
+// DETALHE
+function abrirDetalhe(lid){
+  const l=liderancas.find(x=>x.id===lid);if(!l)return;
+  const pedL=pedidos.filter(p=>p.liderId===lid);
+  const ajL=ajudas.filter(a=>a.liderId===lid);
+  const abertos=pedL.filter(p=>p.status==='pendente').length;
+  const totalDinheiro=ajL.filter(a=>a.tipo==='dinheiro').reduce((s,a)=>s+(parseFloat(a.valor)||0),0);
+  document.getElementById('detalhe-conteudo').innerHTML=`
+    <div class="detalhe-header"><div class="avatar-grande">${iniciais(l.nome)}</div><div><div class="detalhe-nome">${l.nome}</div><div class="detalhe-sub"><span class="tag-bairro">${l.bairro||'—'}</span></div></div></div>
+    <div class="votos-destaque"><div class="num">${l.votos||0}</div><div class="label">votos estimados</div></div>
+    <div class="card">
+      <div class="info-linha"><span class="chave">Telefone</span><span class="valor">${l.telefone?`<a href="tel:${l.telefone}" style="color:var(--azul);text-decoration:none">${l.telefone}</a>`:'—'}</span></div>
+      <div class="info-linha"><span class="chave">WhatsApp</span><span class="valor">${l.telefone?`<a href="https://wa.me/55${l.telefone.replace(/\D/g,'')}" style="color:var(--verde);text-decoration:none">Abrir WhatsApp</a>`:'—'}</span></div>
+      <div class="info-linha"><span class="chave">Bairro</span><span class="valor">${l.bairro||'—'}</span></div>
+      <div class="info-linha"><span class="chave">Pedidos abertos</span><span class="valor" style="color:var(--laranja)">${abertos}</span></div>
+      <div class="info-linha"><span class="chave">Ajudas registradas</span><span class="valor">${ajL.length}</span></div>
+      ${totalDinheiro>0?`<div class="info-linha"><span class="chave">Total em dinheiro</span><span class="valor" style="color:var(--verde)">${fmtMoeda(totalDinheiro)}</span></div>`:''}
+      ${l.obs?`<div class="info-linha"><span class="chave">Obs.</span><span class="valor" style="font-weight:400">${l.obs}</span></div>`:''}
+    </div>
+    ${pedL.length?`<div class="secao-titulo">Pedidos</div>${pedL.sort((a,b)=>b.data-a.data).map(p=>`
+      <div class="pedido-item" onclick="togglePedido('${p.id}')">
+        <div class="pedido-cabecalho"><div class="pedido-lider" style="font-weight:500">${fmtData(p.data)}</div></div>
+        <div class="pedido-texto">${p.texto}</div>
+        <span class="pedido-status ${p.status==='pendente'?'status-pendente':'status-resolvido'}">${p.status==='pendente'?'Pendente — toque para resolver':'Resolvido'}</span>
+      </div>`).join('')}`:''}
+    ${ajL.length?`<div class="secao-titulo">Ajudas prestadas</div>${ajL.sort((a,b)=>b.data-a.data).map(a=>`
+      <div class="ajuda-item">
+        <div class="ajuda-header"><div class="ajuda-lider" style="font-weight:500">${a.dataStr||fmtData(a.data)}</div></div>
+        <div class="ajuda-descricao">${a.descricao}</div>
+        <span class="${a.tipo==='dinheiro'?'ajuda-tipo-dinheiro':'ajuda-tipo-outro'}">${a.tipo==='dinheiro'?'💵 Dinheiro':'🤝 Outro'}</span>
+        ${a.tipo==='dinheiro'&&a.valor?`<div class="ajuda-valor">${fmtMoeda(a.valor)}</div>`:''}
+      </div>`).join('')}`:''}
+    <div style="margin-top:16px">
+      <button class="btn-imprimir" onclick="imprimirLideranca('${l.id}')">🖨️ Imprimir ficha desta liderança</button>
+      <button class="btn-secundario" onclick="abrirFormPedidoPara('${l.id}')">+ Registrar pedido</button>
+      <button class="btn-secundario" onclick="abrirFormAjudaPara('${l.id}')">💵 Registrar ajuda</button>
+      <button class="btn-secundario" onclick="abrirFormEditar('${l.id}')">✏️ Editar liderança</button>
+    </div>`;
+  irTela('tela-detalhe');irNav('nav-liderancas');
+}
+
+function togglePedido(pid){
+  const p=pedidos.find(x=>x.id===pid);if(!p)return;
+  p.status=p.status==='pendente'?'resolvido':'pendente';
+  salvar();abrirDetalhe(p.liderId);
+  toast(p.status==='resolvido'?'Pedido marcado como resolvido':'Pedido reaberto');
+}
+function voltarLista(){irTela('tela-liderancas');irNav('nav-liderancas');renderLideres()}
+
+// FORM LIDERANÇA
+function abrirFormNovo(){
+  editandoId=null;voltarPara='tela-liderancas';
+  document.getElementById('form-titulo').textContent='Nova Liderança';
+  document.getElementById('form-voltar-label').textContent='Lideranças';
+  document.getElementById('btn-excluir').style.display='none';
+  ['nome','bairro','telefone','votos','obs'].forEach(f=>document.getElementById('f-'+f).value='');
+  irTela('tela-form');irNav('nav-liderancas');
+}
+function abrirFormEditar(lid){
+  const l=liderancas.find(x=>x.id===lid);if(!l)return;
+  editandoId=lid;voltarPara='tela-detalhe';
+  document.getElementById('form-titulo').textContent='Editar Liderança';
+  document.getElementById('form-voltar-label').textContent=l.nome;
+  document.getElementById('btn-excluir').style.display='block';
+  document.getElementById('f-nome').value=l.nome||'';
+  document.getElementById('f-bairro').value=l.bairro||'';
+  document.getElementById('f-telefone').value=l.telefone||'';
+  document.getElementById('f-votos').value=l.votos||'';
+  document.getElementById('f-obs').value=l.obs||'';
+  irTela('tela-form');irNav('nav-liderancas');
+}
+function salvarLider(){
+  const nome=document.getElementById('f-nome').value.trim();
+  if(!nome){toast('Informe o nome da liderança');return}
+  if(editandoId){
+    const l=liderancas.find(x=>x.id===editandoId);
+    l.nome=nome;l.bairro=document.getElementById('f-bairro').value.trim();
+    l.telefone=document.getElementById('f-telefone').value.trim();
+    l.votos=parseInt(document.getElementById('f-votos').value)||0;
+    l.obs=document.getElementById('f-obs').value.trim();
+    salvar();toast('Liderança atualizada');abrirDetalhe(editandoId);
+  }else{
+    liderancas.push({id:id(),nome,bairro:document.getElementById('f-bairro').value.trim(),telefone:document.getElementById('f-telefone').value.trim(),votos:parseInt(document.getElementById('f-votos').value)||0,obs:document.getElementById('f-obs').value.trim()});
+    salvar();toast('Liderança cadastrada');irTela('tela-liderancas');irNav('nav-liderancas');renderLideres();
+  }
+}
+function excluirLider(){
+  if(!confirm('Excluir esta liderança? Pedidos e ajudas vinculados também serão removidos.'))return;
+  pedidos=pedidos.filter(p=>p.liderId!==editandoId);
+  ajudas=ajudas.filter(a=>a.liderId!==editandoId);
+  liderancas=liderancas.filter(l=>l.id!==editandoId);
+  salvar();toast('Liderança removida');irTela('tela-liderancas');irNav('nav-liderancas');renderLideres();
+}
+function voltarDeForm(){if(voltarPara==='tela-detalhe'&&editandoId)abrirDetalhe(editandoId);else{irTela('tela-liderancas');irNav('nav-liderancas');renderLideres()}}
+
+// PEDIDOS
+function renderPedidos(){
+  const el=document.getElementById('lista-pedidos');
+  if(!pedidos.length){el.innerHTML='<div class="vazio"><div>Nenhum pedido registrado</div><div style="margin-top:8px;font-size:12px">Toque em + para adicionar</div></div>';return}
+  el.innerHTML=[...pedidos].sort((a,b)=>{if(a.status===b.status)return b.data-a.data;return a.status==='pendente'?-1:1}).map(p=>{
+    const l=liderancas.find(x=>x.id===p.liderId);
+    return`<div class="pedido-item" onclick="togglePedido('${p.id}')"><div class="pedido-cabecalho"><div class="pedido-lider">${l?l.nome:'—'}</div><div class="pedido-data">${fmtData(p.data)}</div></div>${l?`<div style="font-size:11px;color:var(--sub);margin-bottom:6px"><span class="tag-bairro">${l.bairro||'—'}</span></div>`:''}<div class="pedido-texto">${p.texto}</div><span class="pedido-status ${p.status==='pendente'?'status-pendente':'status-resolvido'}">${p.status==='pendente'?'Pendente — toque para resolver':'Resolvido'}</span></div>`;
+  }).join('');
+}
+function abrirFormPedido(){
+  const sel=document.getElementById('fp-lider');
+  sel.innerHTML='<option value="">Selecione…</option>'+liderancas.map(l=>`<option value="${l.id}">${l.nome} — ${l.bairro||'sem bairro'}</option>`).join('');
+  document.getElementById('fp-texto').value='';
+  irTela('tela-form-pedido');irNav('nav-pedidos');
+}
+function abrirFormPedidoPara(lid){abrirFormPedido();document.getElementById('fp-lider').value=lid}
+function salvarPedido(){
+  const lid=document.getElementById('fp-lider').value;
+  const texto=document.getElementById('fp-texto').value.trim();
+  if(!lid){toast('Selecione a liderança');return}
+  if(!texto){toast('Descreva o pedido');return}
+  pedidos.push({id:id(),liderId:lid,texto,status:'pendente',data:Date.now()});
+  salvar();toast('Pedido registrado');irTela('tela-pedidos');irNav('nav-pedidos');renderPedidos();
+}
+
+// AJUDAS
+function selecionarTipo(tipo){
+  tipoAjudaSelecionado=tipo;
+  document.getElementById('btn-tipo-dinheiro').className='tipo-btn'+(tipo==='dinheiro'?' selecionado-dinheiro':'');
+  document.getElementById('btn-tipo-outro').className='tipo-btn'+(tipo==='outro'?' selecionado-outro':'');
+  document.getElementById('campo-valor').className='form-grupo campo-valor'+(tipo==='dinheiro'?' visivel':'');
+}
+function abrirFormAjuda(){
+  ajudaVoltarPara='tela-ajudas';ajudaLiderPresel=null;
+  document.getElementById('ajuda-voltar-label').textContent='Ajudas';
+  const sel=document.getElementById('fa-lider');
+  sel.innerHTML='<option value="">Selecione…</option>'+liderancas.map(l=>`<option value="${l.id}">${l.nome} — ${l.bairro||'sem bairro'}</option>`).join('');
+  document.getElementById('fa-descricao').value='';
+  document.getElementById('fa-valor').value='';
+  document.getElementById('fa-data').value=new Date().toISOString().split('T')[0];
+  selecionarTipo('');irTela('tela-form-ajuda');irNav('nav-ajudas');
+}
+function abrirFormAjudaPara(lid){
+  ajudaVoltarPara='tela-detalhe';ajudaLiderPresel=lid;
+  const l=liderancas.find(x=>x.id===lid);
+  document.getElementById('ajuda-voltar-label').textContent=l?l.nome:'Liderança';
+  const sel=document.getElementById('fa-lider');
+  sel.innerHTML='<option value="">Selecione…</option>'+liderancas.map(l2=>`<option value="${l2.id}">${l2.nome} — ${l2.bairro||'sem bairro'}</option>`).join('');
+  sel.value=lid;
+  document.getElementById('fa-descricao').value='';
+  document.getElementById('fa-valor').value='';
+  document.getElementById('fa-data').value=new Date().toISOString().split('T')[0];
+  selecionarTipo('');irTela('tela-form-ajuda');irNav('nav-liderancas');
+}
+function salvarAjuda(){
+  const lid=document.getElementById('fa-lider').value;
+  const desc=document.getElementById('fa-descricao').value.trim();
+  const dataVal=document.getElementById('fa-data').value;
+  if(!lid){toast('Selecione a liderança');return}
+  if(!tipoAjudaSelecionado){toast('Selecione o tipo de ajuda');return}
+  if(!desc){toast('Descreva a ajuda');return}
+  const valor=tipoAjudaSelecionado==='dinheiro'?parseFloat(document.getElementById('fa-valor').value)||0:0;
+  if(tipoAjudaSelecionado==='dinheiro'&&!valor){toast('Informe o valor em dinheiro');return}
+  const dataTs=dataVal?new Date(dataVal).getTime():Date.now();
+  const dataStr=dataVal?new Date(dataVal+'T12:00:00').toLocaleDateString('pt-BR'):fmtData(Date.now());
+  ajudas.push({id:id(),liderId:lid,tipo:tipoAjudaSelecionado,valor,descricao:desc,data:dataTs,dataStr});
+  salvar();toast('Ajuda registrada');
+  if(ajudaVoltarPara==='tela-detalhe'&&ajudaLiderPresel)abrirDetalhe(ajudaLiderPresel);
+  else{irTela('tela-ajudas');irNav('nav-ajudas');renderAjudas();}
+}
+function voltarDeAjuda(){
+  if(ajudaVoltarPara==='tela-detalhe'&&ajudaLiderPresel)abrirDetalhe(ajudaLiderPresel);
+  else{irTela('tela-ajudas');irNav('nav-ajudas');renderAjudas();}
+}
+function renderAjudas(){
+  const totalDinheiro=ajudas.filter(a=>a.tipo==='dinheiro').reduce((s,a)=>s+(parseFloat(a.valor)||0),0);
+  document.getElementById('ajudas-resumo').innerHTML=totalDinheiro>0?`<div class="total-dinheiro-banner"><div class="num">${fmtMoeda(totalDinheiro)}</div><div class="label">total em dinheiro distribuído</div></div>`:'';
+  const el=document.getElementById('lista-ajudas');
+  if(!ajudas.length){el.innerHTML='<div class="vazio"><div>Nenhuma ajuda registrada</div><div style="margin-top:8px;font-size:12px">Toque em + para adicionar</div></div>';return}
+  el.innerHTML=[...ajudas].sort((a,b)=>b.data-a.data).map(a=>{
+    const l=liderancas.find(x=>x.id===a.liderId);
+    return`<div class="ajuda-item"><div class="ajuda-header"><div class="ajuda-lider">${l?l.nome:'—'}</div><div class="ajuda-data">${a.dataStr||fmtData(a.data)}</div></div>${l?`<div style="font-size:11px;color:var(--sub);margin-bottom:6px"><span class="tag-bairro">${l.bairro||'—'}</span></div>`:''}<div class="ajuda-descricao">${a.descricao}</div><span class="${a.tipo==='dinheiro'?'ajuda-tipo-dinheiro':'ajuda-tipo-outro'}">${a.tipo==='dinheiro'?'💵 Dinheiro':'🤝 Outro'}</span>${a.tipo==='dinheiro'&&a.valor?`<div class="ajuda-valor">${fmtMoeda(a.valor)}</div>`:''}</div>`;
+  }).join('');
+}
+
+// ── IMPRESSÃO ──────────────────────────────────────────────
+function rodape(){return`<div class="print-rodape">Painel Eleitoral — Negromonte Filho · Gerado em ${agora()}</div>`}
+
+function imprimirLideranca(lid){
+  const l=liderancas.find(x=>x.id===lid);if(!l)return;
+  const pedL=pedidos.filter(p=>p.liderId===lid);
+  const ajL=ajudas.filter(a=>a.liderId===lid);
+  const totalDinheiro=ajL.filter(a=>a.tipo==='dinheiro').reduce((s,a)=>s+(parseFloat(a.valor)||0),0);
+
+  const pedHtml=pedL.length?`
+    <div class="print-secao">Pedidos (${pedL.length})</div>
+    <table class="print-tabela"><thead><tr><th>Data</th><th>Descrição</th><th>Status</th></tr></thead><tbody>
+    ${pedL.sort((a,b)=>b.data-a.data).map(p=>`<tr><td>${fmtData(p.data)}</td><td>${p.texto}</td><td>${p.status==='pendente'?'Pendente':'Resolvido'}</td></tr>`).join('')}
+    </tbody></table>`:'';
+
+  const ajHtml=ajL.length?`
+    <div class="print-secao">Ajudas prestadas (${ajL.length})</div>
+    <table class="print-tabela"><thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Valor</th></tr></thead><tbody>
+    ${ajL.sort((a,b)=>b.data-a.data).map(a=>`<tr><td>${a.dataStr||fmtData(a.data)}</td><td>${a.tipo==='dinheiro'?'Dinheiro':'Outro'}</td><td>${a.descricao}</td><td>${a.tipo==='dinheiro'?fmtMoeda(a.valor):'—'}</td></tr>`).join('')}
+    </tbody></table>
+    ${totalDinheiro>0?`<div class="print-linha" style="margin-top:8px;font-weight:700"><span class="chave">Total em dinheiro</span><span class="valor" style="color:#1A7A4A">${fmtMoeda(totalDinheiro)}</span></div>`:''}`:'';
+
+  document.getElementById('area-impressao').innerHTML=`
+    <div class="print-page">
+      <div class="print-cabecalho">
+        <div class="print-titulo">FICHA DE LIDERANÇA</div>
+        <div class="print-sub">Painel Eleitoral — Negromonte Filho</div>
+        <div class="print-data">${agora()}</div>
+      </div>
+      <div class="print-votos-big">${l.votos||0} votos estimados</div>
+      <div class="print-secao">Dados cadastrais</div>
+      <div class="print-linha"><span class="chave">Nome</span><span class="valor">${l.nome}</span></div>
+      <div class="print-linha"><span class="chave">Bairro / Localidade</span><span class="valor">${l.bairro||'—'}</span></div>
+      <div class="print-linha"><span class="chave">Telefone</span><span class="valor">${l.telefone||'—'}</span></div>
+      ${l.obs?`<div class="print-linha"><span class="chave">Observação</span><span class="valor">${l.obs}</span></div>`:''}
+      ${pedHtml}${ajHtml}
+      ${rodape()}
+    </div>`;
+  window.print();
+}
+
+function imprimirRelatorioGeral(){
+  const totalVotos=liderancas.reduce((s,l)=>s+(parseInt(l.votos)||0),0);
+  const totalDinheiro=ajudas.filter(a=>a.tipo==='dinheiro').reduce((s,a)=>s+(parseFloat(a.valor)||0),0);
+  const abertos=pedidos.filter(p=>p.status==='pendente').length;
+  const bairros=new Set(liderancas.map(l=>l.bairro).filter(Boolean));
+  const ord=[...liderancas].sort((a,b)=>(parseInt(b.votos)||0)-(parseInt(a.votos)||0));
+
+  // Página 1: resumo geral
+  const pag1=`
+    <div class="print-page">
+      <div class="print-cabecalho">
+        <div class="print-titulo">RELATÓRIO GERAL ELEITORAL</div>
+        <div class="print-sub">Negromonte Filho — Nazaré da Mata</div>
+        <div class="print-data">${agora()}</div>
+      </div>
+      <div class="print-total-banner">
+        <div class="num">${totalVotos.toLocaleString('pt-BR')}</div>
+        <div class="label">TOTAL DE VOTOS ESTIMADOS</div>
+      </div>
+      <div class="print-secao">Resumo geral</div>
+      <div class="print-linha"><span class="chave">Total de lideranças</span><span class="valor">${liderancas.length}</span></div>
+      <div class="print-linha"><span class="chave">Bairros cobertos</span><span class="valor">${bairros.size}</span></div>
+      <div class="print-linha"><span class="chave">Pedidos abertos</span><span class="valor">${abertos}</span></div>
+      <div class="print-linha"><span class="chave">Total de ajudas registradas</span><span class="valor">${ajudas.length}</span></div>
+      ${totalDinheiro>0?`<div class="print-linha"><span class="chave">Total em dinheiro distribuído</span><span class="valor" style="color:#1A7A4A">${fmtMoeda(totalDinheiro)}</span></div>`:''}
+
+      <div class="print-secao">Ranking de lideranças por votos</div>
+      <table class="print-tabela"><thead><tr><th>#</th><th>Nome</th><th>Bairro</th><th>Telefone</th><th>Votos</th><th>Pedidos</th></tr></thead><tbody>
+      ${ord.map((l,i)=>{
+        const nP=pedidos.filter(p=>p.liderId===l.id&&p.status==='pendente').length;
+        return`<tr><td>${i+1}</td><td>${l.nome}</td><td>${l.bairro||'—'}</td><td>${l.telefone||'—'}</td><td><strong>${l.votos||0}</strong></td><td>${nP>0?nP:'—'}</td></tr>`;
+      }).join('')}
+      </tbody></table>
+
+      <div class="print-secao">Votos por bairro</div>
+      <table class="print-tabela"><thead><tr><th>Bairro</th><th>Lideranças</th><th>Votos estimados</th></tr></thead><tbody>
+      ${[...bairros].map(b=>{
+        const ls=liderancas.filter(l=>l.bairro===b);
+        const vt=ls.reduce((s,l)=>s+(parseInt(l.votos)||0),0);
+        return`<tr><td>${b}</td><td>${ls.length}</td><td><strong>${vt}</strong></td></tr>`;
+      }).sort((a,b)=>b-a).join('')}
+      </tbody></table>
+      ${rodape()}
+    </div>`;
+
+  // Página 2: pedidos abertos
+  const pedAbertos=pedidos.filter(p=>p.status==='pendente').sort((a,b)=>b.data-a.data);
+  const pag2=pedAbertos.length?`
+    <div class="print-page">
+      <div class="print-cabecalho"><div class="print-titulo">PEDIDOS ABERTOS</div><div class="print-sub">Negromonte Filho — Nazaré da Mata</div><div class="print-data">${agora()}</div></div>
+      <table class="print-tabela"><thead><tr><th>Liderança</th><th>Bairro</th><th>Data</th><th>Pedido</th></tr></thead><tbody>
+      ${pedAbertos.map(p=>{const l=liderancas.find(x=>x.id===p.liderId);return`<tr><td>${l?l.nome:'—'}</td><td>${l?l.bairro||'—':'—'}</td><td>${fmtData(p.data)}</td><td>${p.texto}</td></tr>`}).join('')}
+      </tbody></table>
+      ${rodape()}
+    </div>`:'';
+
+  // Página 3: ajudas em dinheiro
+  const ajDinheiro=ajudas.filter(a=>a.tipo==='dinheiro').sort((a,b)=>b.data-a.data);
+  const pag3=ajDinheiro.length?`
+    <div class="print-page">
+      <div class="print-cabecalho"><div class="print-titulo">AJUDAS EM DINHEIRO</div><div class="print-sub">Negromonte Filho — Nazaré da Mata</div><div class="print-data">${agora()}</div></div>
+      <div class="print-total-banner"><div class="num">${fmtMoeda(totalDinheiro)}</div><div class="label">TOTAL DISTRIBUÍDO</div></div>
+      <table class="print-tabela"><thead><tr><th>Data</th><th>Liderança</th><th>Bairro</th><th>Descrição</th><th>Valor</th></tr></thead><tbody>
+      ${ajDinheiro.map(a=>{const l=liderancas.find(x=>x.id===a.liderId);return`<tr><td>${a.dataStr||fmtData(a.data)}</td><td>${l?l.nome:'—'}</td><td>${l?l.bairro||'—':'—'}</td><td>${a.descricao}</td><td><strong>${fmtMoeda(a.valor)}</strong></td></tr>`}).join('')}
+      </tbody></table>
+      ${rodape()}
+    </div>`:'';
+
+  document.getElementById('area-impressao').innerHTML=pag1+pag2+pag3;
+  window.print();
+}
+
+// ── EXPORTAR BACKUP ──────────────────────────────────────
+function exportarBackup(){
+  // Gera um novo HTML com os dados embutidos diretamente no código
+  const dados = {
+    liderancas: JSON.stringify(liderancas),
+    pedidos: JSON.stringify(pedidos),
+    ajudas: JSON.stringify(ajudas)
+  };
+
+  // Lê o HTML atual e injeta os dados como valores iniciais
+  const htmlAtual = document.documentElement.outerHTML;
+
+  // Substitui as linhas de inicialização com os dados atuais
+  const htmlExportado = htmlAtual
+    .replace(
+      /let liderancas=JSON\.parse\(localStorage\.getItem\('liderancas'\)\|\|'\[\]'\);/,
+      `let liderancas=JSON.parse(localStorage.getItem('liderancas')||'${dados.liderancas.replace(/'/g,"\\'")}');`
+    )
+    .replace(
+      /let pedidos=JSON\.parse\(localStorage\.getItem\('pedidos'\)\|\|'\[\]'\);/,
+      `let pedidos=JSON.parse(localStorage.getItem('pedidos')||'${dados.pedidos.replace(/'/g,"\\'")}');`
+    )
+    .replace(
+      /let ajudas=JSON\.parse\(localStorage\.getItem\('ajudas'\)\|\|'\[\]'\);/,
+      `let ajudas=JSON.parse(localStorage.getItem('ajudas')||'${dados.ajudas.replace(/'/g,"\\'")}');`
+    );
+
+  const blob = new Blob([htmlExportado], {type: 'text/html;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const dataHoje = new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
+  a.href = url;
+  a.download = `painel_eleitoral_${dataHoje}.html`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('Arquivo salvo com todos os dados atualizados');
+}
+
+renderDashboard();
+</script>
+
+
+</body></html>
